@@ -1,0 +1,11 @@
+{
+  "enabled": false,
+  "smtp_server": "",
+  "smtp_port": 465,
+  "use_ssl": true,
+  "sender_email": "",
+  "sender_password": "",
+  "receiver_email": "",
+  "send_start_time": "22:00",
+  "send_end_time": "08:00"
+}

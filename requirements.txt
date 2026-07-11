@@ -1,0 +1,8 @@
+ccxt>=4.0.0
+pandas>=2.0.0
+pandas-ta>=0.3.14b
+websocket-client>=1.6.0
+windows-toasts>=1.0.0; sys_platform == "win32"
+flask>=3.0.0
+flask-socketio>=5.3.0
+gunicorn>=22.0.0

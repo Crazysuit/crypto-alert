@@ -1,0 +1,182 @@
+[
+  {
+    "id": "d5f6c85c-7a1e-4e70-aa6f-3a28a85418a4",
+    "symbol": "BTC/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bullish_bos"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:25",
+    "created_at": "2026-06-21T15:25:51.059332"
+  },
+  {
+    "id": "dda01439-f031-4b7e-ae33-ed07fd8413e2",
+    "symbol": "BTC/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bullish_choch"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:42",
+    "created_at": "2026-06-21T15:42:29.848013"
+  },
+  {
+    "id": "d10d44cf-16fb-42ae-9f0b-94fcdc6f6ff0",
+    "symbol": "BTC/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bearish_choch"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:42",
+    "created_at": "2026-06-21T15:42:41.416350"
+  },
+  {
+    "id": "91f885d2-7cf4-40dc-a787-6780426d4e3a",
+    "symbol": "BTC/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bearish_choch"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:42",
+    "created_at": "2026-06-21T15:42:54.937440"
+  },
+  {
+    "id": "57db239b-c9e1-4058-a72f-d80c660698cf",
+    "symbol": "ETH/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bullish_bos"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:48",
+    "created_at": "2026-06-21T15:48:10.094033"
+  },
+  {
+    "id": "7abe1f17-ea86-4265-9b37-0913875af08e",
+    "symbol": "ETH/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bullish_choch"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:48",
+    "created_at": "2026-06-21T15:48:19.842159"
+  },
+  {
+    "id": "7f96f8d1-a4be-4b38-87df-f14b2348d65c",
+    "symbol": "ETH/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bearish_bos"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:48",
+    "created_at": "2026-06-21T15:48:27.142958"
+  },
+  {
+    "id": "bad369df-1ede-49e6-a90f-9c8d621fbdb3",
+    "symbol": "ETH/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bearish_choch"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:48",
+    "created_at": "2026-06-21T15:48:34.877176"
+  },
+  {
+    "id": "08ca72aa-4f7a-49c1-8979-dd26c209ae26",
+    "symbol": "SOL/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bullish_bos"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:57",
+    "created_at": "2026-06-21T15:57:09.714761"
+  },
+  {
+    "id": "ddb251de-f3bd-4c3d-ae7a-9893dc3b1347",
+    "symbol": "SOL/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bullish_choch"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:57",
+    "created_at": "2026-06-21T15:57:19.310579"
+  },
+  {
+    "id": "e5814a07-361c-436a-b83f-ffc1411c87d9",
+    "symbol": "SOL/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bearish_bos"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:57",
+    "created_at": "2026-06-21T15:57:25.397430"
+  },
+  {
+    "id": "3554a1f9-5487-45fd-ae19-f1044176aea8",
+    "symbol": "SOL/USDT",
+    "timeframe": "15m",
+    "condition_type": "smc",
+    "params": {
+      "signal": "smc_internal_bearish_choch"
+    },
+    "message": "",
+    "enabled": true,
+    "cooldown": 300,
+    "trigger_mode": "once_per_bar_close",
+    "expiration_time": "2026-07-21T15:57",
+    "created_at": "2026-06-21T15:57:30.299193"
+  }
+]

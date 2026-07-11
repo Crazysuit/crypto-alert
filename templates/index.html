@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>CryptoAlert — 加密货币智能监控</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#0a0a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CryptoAlert">
+    <meta name="application-name" content="CryptoAlert">
+    <meta name="description" content="Gate.io 加密货币实时价格监控与智能警报系统">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4.0">
+    <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="/static/icons/icon-192.png" type="image/png">
+</head>
+<body>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- HEADER                                                    -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="logo-group">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="18" stroke="url(#logoGrad)" stroke-width="2.5"/>
+                        <path d="M14 26V14l6 6 6-6v12" stroke="url(#logoGrad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40">
+                                <stop stop-color="#00d4ff"/>
+                                <stop offset="1" stop-color="#00ff88"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>CryptoAlert</h1>
+                    <span class="logo-sub">Gate.io 智能监控系统</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="status-badge" id="connectionStatus">
+                    <span class="status-dot disconnected"></span>
+                    <span class="status-label">未连接</span>
+                </div>
+                <button class="btn btn-ghost" id="btnThemeToggle" title="切换日间/夜间模式">
+                    <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <button class="btn btn-ghost" id="btnEmailSettings" title="邮件通知设置" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <span>邮件设置</span>
+                </button>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- PRICE TICKER                                              -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <section class="price-ticker-wrap">
+        <div class="price-ticker" id="priceTicker">
+            <div class="ticker-placeholder">正在加载行情数据…</div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- MAIN CONTENT                                              -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <main class="dashboard">
+        <!-- LEFT: Active Alerts -->
+        <section class="panel panel-alerts glass-card">
+            <div class="panel-header">
+                <div class="panel-title-group">
+                    <h2>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        活跃预警
+                    </h2>
+                    <span class="badge" id="alertCount">0</span>
+                </div>
+                <button class="btn btn-primary btn-add" id="btnAddAlert" title="新建预警">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>新建预警</span>
+                </button>
+            </div>
+            <div class="panel-body" id="alertList">
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    <p>暂无活跃预警</p>
+                    <span>点击上方「新建预警」按钮创建第一条预警规则</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT: Alert History -->
+        <section class="panel panel-history glass-card">
+            <div class="panel-header">
+                <div class="panel-title-group">
+                    <h2>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        触发记录
+                    </h2>
+                    <span class="badge" id="historyCount">0</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-ghost btn-sm btn-danger-text" id="btnClearHistory" title="清空全部触发记录">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        <span>清空</span>
+                    </button>
+                    <button class="btn btn-ghost btn-sm" id="btnRefreshHistory" title="刷新">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="panel-body" id="historyList">
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <p>暂无触发记录</p>
+                    <span>当预警条件被触发时，记录将显示在这里</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- BOTTOM NAVIGATION (Mobile)                                -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <button class="bottom-nav-item active" data-panel="alerts" id="navAlerts">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span>预警</span>
+            </button>
+            <button class="bottom-nav-item" data-panel="history" id="navHistory">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>记录</span>
+            </button>
+            <button class="bottom-nav-item" data-action="add" id="navAdd">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>新建</span>
+            </button>
+            <button class="bottom-nav-item" data-action="email" id="navEmail">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span>邮件</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- PWA INSTALL BANNER                                        -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="pwa-install-banner" id="pwaInstallBanner">
+        <img src="/static/icons/icon-192.png" alt="CryptoAlert" class="pwa-icon">
+        <div class="pwa-info">
+            <strong>安装 CryptoAlert</strong>
+            <span>添加到主屏幕，获得更好体验</span>
+        </div>
+        <button class="btn-install" id="btnPwaInstall">安装</button>
+        <button class="btn-dismiss" id="btnPwaDismiss">&times;</button>
+    </div>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- ALERT MODAL                                               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="alertModal">
+        <div class="modal glass-card">
+            <!-- Sidebar -->
+            <div class="modal-sidebar">
+                <div class="sidebar-item active" title="警报设置">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <!-- Main Content -->
+            <div class="modal-main">
+                <div class="modal-header">
+                    <div class="modal-title-group">
+                        <span id="modalTitle">创建警报</span>
+                        <div class="tv-symbol-selector-wrap">
+                            <select id="alertSymbol" required class="tv-symbol-select">
+                                <option value="" disabled selected>选择交易对…</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-close" id="btnCloseModal" aria-label="关闭">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <form id="alertForm" autocomplete="off">
+                    <input type="hidden" id="alertId" value="">
+
+                    <!-- 条件 Row -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">条件</div>
+                        <div class="tv-control-group">
+                            <select id="alertCondition" required>
+                                <option value="" disabled selected>选择条件…</option>
+                            </select>
+                            <!-- Dynamic parameters (like signal select dropdown) injected here -->
+                            <div id="dynamicParams" style="margin-top: 4px; display: flex; flex-direction: column; gap: 8px; width: 100%;"></div>
+                            <p class="form-hint" id="conditionDesc" style="margin-top: 4px;"></p>
+                        </div>
+                    </div>
+
+                    <!-- 周期 Row -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">周期</div>
+                        <div class="tv-control-group">
+                            <select id="alertTimeframe" required>
+                                <option value="1m">1 分钟</option>
+                                <option value="5m">5 分钟</option>
+                                <option value="15m">15 分钟</option>
+                                <option value="1h" selected>1 小时</option>
+                                <option value="4h">4 小时</option>
+                                <option value="1d">1 天</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 触发 Row -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">触发</div>
+                        <div class="tv-control-group">
+                            <select id="alertTriggerMode" required>
+                                <option value="once">仅一次 (满足条件时触发一次)</option>
+                                <option value="once_per_bar">每根 K 线一次 (当满足条件时，每根 K 线触发一次)</option>
+                                <option value="once_per_bar_close" selected>每根 K 线收盘时一次 (在 K 线收盘时，每次条件满足时触发)</option>
+                                <option value="once_per_minute">每分钟一次 (当满足条件时，每分钟触发一次)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 到期时间 Row -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">到期时间</div>
+                        <div class="tv-control-group">
+                            <input type="datetime-local" id="alertExpirationTime">
+                        </div>
+                    </div>
+
+                    <!-- 消息 Row -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">消息</div>
+                        <div class="tv-control-group">
+                            <textarea id="alertMessage" placeholder="输入警报消息内容" rows="3" maxlength="200" style="resize: vertical;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 通知 Row -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">通知</div>
+                        <div class="tv-control-group">
+                            <div style="display: flex; gap: 20px; align-items: center; margin-top: 6px;">
+                                <label class="tv-checkbox-label">
+                                    <input type="checkbox" id="alertNotifyPopup" checked> <span>弹窗通知</span>
+                                </label>
+                                <label class="tv-checkbox-label">
+                                    <input type="checkbox" id="alertNotifySound" checked> <span>声音提示</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 隐藏的冷却设置以保持原有 API 兼容，非自定义时使用默认 300 -->
+                    <input type="hidden" id="alertCooldown" value="300">
+
+                    <div class="modal-actions" style="margin-top: 20px;">
+                        <button type="button" class="btn btn-ghost" id="btnCancelModal">取消</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span id="btnSubmitLabel">创建警报</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- EMAIL SETTINGS MODAL                                      -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="emailModal">
+        <div class="modal glass-card">
+            <div class="modal-sidebar">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+            </div>
+            <div class="modal-main">
+                <div class="modal-header">
+                    <h3>邮件通知设置</h3>
+                    <button class="btn-close" id="btnCloseEmail" title="关闭">&times;</button>
+                </div>
+                <form id="emailForm" autocomplete="off">
+                    <!-- 启用开关 -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">启用</div>
+                        <div class="tv-control-group">
+                            <label class="toggle-label-row">
+                                <input type="checkbox" id="emailEnabled">
+                                <span class="toggle-text">触发警报时发送邮件通知</span>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- SMTP 服务器 -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">SMTP 服务器</div>
+                        <div class="tv-control-group">
+                            <input type="text" id="emailSmtpServer" placeholder="例: smtp.qq.com">
+                        </div>
+                    </div>
+                    <!-- SMTP 端口 -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">端口</div>
+                        <div class="tv-control-group">
+                            <input type="number" id="emailSmtpPort" value="465" min="1" max="65535">
+                            <label class="toggle-label-row" style="margin-top: 6px;">
+                                <input type="checkbox" id="emailUseSsl" checked>
+                                <span class="toggle-text">使用 SSL</span>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- 发件邮箱 -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">发件邮箱</div>
+                        <div class="tv-control-group">
+                            <input type="email" id="emailSender" placeholder="your@email.com">
+                        </div>
+                    </div>
+                    <!-- 授权码 / 密码 -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">授权码</div>
+                        <div class="tv-control-group">
+                            <input type="password" id="emailPassword" placeholder="SMTP 授权码">
+                            <p class="form-hint">QQ邮箱/163邮箱请使用授权码，非登录密码</p>
+                        </div>
+                    </div>
+                    <!-- 收件邮箱 -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">收件邮箱</div>
+                        <div class="tv-control-group">
+                            <input type="email" id="emailReceiver" placeholder="receiver@email.com">
+                        </div>
+                    </div>
+                    <!-- 发送时间段 -->
+                    <div class="form-row-tv">
+                        <div class="tv-label">发送时段</div>
+                        <div class="tv-control-group">
+                            <div class="time-range-group">
+                                <input type="time" id="emailStartTime" value="22:00">
+                                <span class="time-range-sep">至</span>
+                                <input type="time" id="emailEndTime" value="08:00">
+                            </div>
+                            <p class="form-hint">仅在此时间段内发送邮件（例: 离开电脑时段），留空或设置相同时间 = 全天发送</p>
+                        </div>
+                    </div>
+                    <!-- 操作按钮 -->
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-ghost" id="btnTestEmail">发送测试邮件</button>
+                        <button type="button" class="btn btn-ghost" id="btnCancelEmail">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- TOAST CONTAINER                                           -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SCRIPTS                                                   -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=4.0"></script>
+
+    <!-- Service Worker Registration & PWA Install -->
+    <script>
+    (function() {
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .then(function(reg) {
+                        console.log('[PWA] Service Worker registered, scope:', reg.scope);
+                    })
+                    .catch(function(err) {
+                        console.warn('[PWA] SW registration failed:', err);
+                    });
+            });
+        }
+
+        // PWA Install Banner
+        let deferredPrompt = null;
+        const banner = document.getElementById('pwaInstallBanner');
+        const btnInstall = document.getElementById('btnPwaInstall');
+        const btnDismiss = document.getElementById('btnPwaDismiss');
+
+        window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Show install banner (unless dismissed recently)
+            if (!sessionStorage.getItem('pwa-dismissed')) {
+                setTimeout(function() {
+                    banner.classList.add('visible');
+                }, 2000);
+            }
+        });
+
+        if (btnInstall) {
+            btnInstall.addEventListener('click', async function() {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const result = await deferredPrompt.userChoice;
+                console.log('[PWA] Install result:', result.outcome);
+                deferredPrompt = null;
+                banner.classList.remove('visible');
+            });
+        }
+
+        if (btnDismiss) {
+            btnDismiss.addEventListener('click', function() {
+                banner.classList.remove('visible');
+                sessionStorage.setItem('pwa-dismissed', '1');
+            });
+        }
+
+        // Bottom Navigation — Mobile Panel Switching
+        const bottomNav = document.getElementById('bottomNav');
+        if (bottomNav) {
+            const navItems = bottomNav.querySelectorAll('.bottom-nav-item[data-panel]');
+            const panelAlerts = document.querySelector('.panel-alerts');
+            const panelHistory = document.querySelector('.panel-history');
+
+            function isMobile() {
+                return window.matchMedia('(max-width: 768px)').matches;
+            }
+
+            function switchPanel(panelName) {
+                if (!isMobile()) return;
+                navItems.forEach(function(item) {
+                    item.classList.toggle('active', item.dataset.panel === panelName);
+                });
+                if (panelAlerts) {
+                    panelAlerts.classList.toggle('mobile-visible', panelName === 'alerts');
+                }
+                if (panelHistory) {
+                    panelHistory.classList.toggle('mobile-visible', panelName === 'history');
+                }
+            }
+
+            navItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    switchPanel(this.dataset.panel);
+                });
+            });
+
+            // "Add" button in bottom nav
+            var navAdd = document.getElementById('navAdd');
+            if (navAdd) {
+                navAdd.addEventListener('click', function() {
+                    var btn = document.getElementById('btnAddAlert');
+                    if (btn) btn.click();
+                });
+            }
+
+            // "Email" button in bottom nav
+            var navEmail = document.getElementById('navEmail');
+            if (navEmail) {
+                navEmail.addEventListener('click', function() {
+                    var btn = document.getElementById('btnEmailSettings');
+                    if (btn) btn.click();
+                });
+            }
+
+            // Initialize: show alerts panel on mobile
+            function initMobileView() {
+                if (isMobile()) {
+                    switchPanel('alerts');
+                } else {
+                    // On desktop, show both panels
+                    if (panelAlerts) panelAlerts.classList.remove('mobile-visible');
+                    if (panelHistory) panelHistory.classList.remove('mobile-visible');
+                    if (panelAlerts) panelAlerts.style.display = '';
+                    if (panelHistory) panelHistory.style.display = '';
+                }
+            }
+
+            initMobileView();
+            window.addEventListener('resize', initMobileView);
+        }
+    })();
+    </script>
+</body>
+</html>
