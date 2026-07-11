@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoAlert — 模拟量化交易</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/trading.css') }}?v=1.0">
+    <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml">
+</head>
+<body>
+    <header class="topbar">
+        <div>
+            <h1>模拟量化交易</h1>
+            <p>EMA 趋势策略 · Gate.io 实时行情 · 纸面成交</p>
+        </div>
+        <a href="/" class="back-link">← 返回预警面板</a>
+    </header>
+
+    <main class="container">
+        <section class="notice">
+            <strong>模拟盘模式</strong>
+            <span>不会向 Gate.io 提交真实订单，也不需要 API Key。月盈利目标是停止条件，不代表收益保证；免费服务器休眠或重启后，模拟记录可能重置。</span>
+        </section>
+
+        <section class="summary-grid">
+            <article class="card metric">
+                <span>运行状态</span>
+                <strong id="runStatus">加载中</strong>
+                <small id="lastSignal">—</small>
+            </article>
+            <article class="card metric">
+                <span>模拟总资产</span>
+                <strong><span id="equity">—</span> USDT</strong>
+                <small>初始本金 200 USDT</small>
+            </article>
+            <article class="card metric">
+                <span>本月已实现盈亏</span>
+                <strong id="monthlyPnl">—</strong>
+                <small>目标：20 USDT</small>
+            </article>
+            <article class="card metric">
+                <span>今日已实现盈亏</span>
+                <strong id="dailyPnl">—</strong>
+                <small>亏损达到 2 USDT 停止开仓</small>
+            </article>
+        </section>
+
+        <section class="layout">
+            <article class="card control-card">
+                <div class="section-title">
+                    <div>
+                        <h2>策略与风控</h2>
+                        <p>运行时参数锁定，停止后才能修改。</p>
+                    </div>
+                    <span class="mode-badge">PAPER</span>
+                </div>
+
+                <form id="configForm" class="config-grid">
+                    <label>交易对
+                        <select id="symbol">
+                            <option value="BTC/USDT">BTC/USDT</option>
+                            <option value="ETH/USDT">ETH/USDT</option>
+                        </select>
+                    </label>
+                    <label>K线周期
+                        <select id="timeframe">
+                            <option value="5m">5分钟</option>
+                            <option value="15m">15分钟</option>
+                            <option value="30m">30分钟</option>
+                            <option value="1h">1小时</option>
+                            <option value="4h">4小时</option>
+                        </select>
+                    </label>
+                    <label>止损比例
+                        <div class="input-suffix"><input id="stopLoss" type="number" min="0.5" max="10" step="0.1"><span>%</span></div>
+                    </label>
+                    <label>止盈比例
+                        <div class="input-suffix"><input id="takeProfit" type="number" min="0.5" max="20" step="0.1"><span>%</span></div>
+                    </label>
+                    <label>单笔风险
+                        <div class="input-suffix"><input id="riskPerTrade" type="number" min="0.1" max="2" step="0.1"><span>%</span></div>
+                    </label>
+                    <label>最大仓位
+                        <div class="input-suffix"><input id="maxPosition" type="number" min="5" max="50" step="1"><span>%</span></div>
+                    </label>
+                    <label>每日最大亏损
+                        <div class="input-suffix"><input id="dailyLoss" type="number" min="0.5" max="20" step="0.5"><span>USDT</span></div>
+                    </label>
+                    <label>月盈利目标
+                        <div class="input-suffix"><input id="monthlyTarget" type="number" min="1" max="100" step="1"><span>USDT</span></div>
+                    </label>
+                </form>
+
+                <div class="actions">
+                    <button id="startBtn" class="btn primary">保存并启动模拟交易</button>
+                    <button id="stopBtn" class="btn danger">停止</button>
+                    <button id="resetBtn" class="btn secondary">重置模拟账户</button>
+                </div>
+                <p class="error" id="errorText"></p>
+            </article>
+
+            <article class="card position-card">
+                <div class="section-title">
+                    <div>
+                        <h2>账户与持仓</h2>
+                        <p id="updatedAt">—</p>
+                    </div>
+                </div>
+                <dl class="account-list">
+                    <div><dt>可用资金</dt><dd><span id="cash">—</span> USDT</dd></div>
+                    <div><dt>当前价格</dt><dd id="currentPrice">—</dd></div>
+                    <div><dt>累计已实现盈亏</dt><dd id="totalPnl">—</dd></div>
+                    <div><dt>未实现盈亏</dt><dd id="unrealizedPnl">—</dd></div>
+                    <div><dt>完整交易次数</dt><dd id="tradeCount">0</dd></div>
+                </dl>
+                <div id="positionEmpty" class="empty-position">当前没有模拟持仓</div>
+                <div id="positionDetails" class="position-details hidden">
+                    <h3 id="positionSymbol">—</h3>
+                    <p>数量 <strong id="positionQty">—</strong></p>
+                    <p>入场价 <strong id="entryPrice">—</strong></p>
+                    <p>止损价 <strong id="stopPrice">—</strong></p>
+                    <p>止盈价 <strong id="takePrice">—</strong></p>
+                </div>
+            </article>
+        </section>
+
+        <section class="card history-card">
+            <div class="section-title">
+                <div>
+                    <h2>模拟成交记录</h2>
+                    <p>费用已按照配置的模拟费率计入盈亏。</p>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>时间</th><th>方向</th><th>交易对</th><th>价格</th><th>数量</th><th>费用</th><th>盈亏</th><th>原因</th></tr></thead>
+                    <tbody id="historyBody"><tr><td colspan="8" class="empty-row">暂无模拟成交</td></tr></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/trading.js') }}?v=1.0"></script>
+</body>
+</html>

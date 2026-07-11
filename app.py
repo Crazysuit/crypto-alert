@@ -12,8 +12,11 @@ from storage import (
     load_history, delete_history, clear_history
 )
 from indicators import get_condition_types
-from email_notifier import load_email_config, save_email_config, test_email_send
+from email_notifier import (
+    load_email_config, save_email_config, test_email_send, send_alert_email
+)
 from monitor import MonitorEngine
+from trading import PaperTradingEngine
 
 # ========================================
 # Flask 应用初始化
@@ -24,6 +27,22 @@ socketio = SocketIO(app, async_mode='threading', cors_allowed_origins="*")
 
 # 初始化监控引擎
 monitor = MonitorEngine(socketio=socketio)
+
+
+def handle_paper_trade(entry):
+    """将模拟成交推送到独立页面，并复用现有邮件通知。"""
+    socketio.emit('paper_trade', entry)
+    side = '买入' if entry['side'] == 'buy' else '卖出'
+    title = f"模拟交易 {side} {entry['symbol']}"
+    body = (
+        f"模式: 模拟盘\n方向: {side}\n价格: {entry['price']}\n"
+        f"数量: {entry['quantity']}\n盈亏: {entry['pnl']:+.2f} USDT\n"
+        f"原因: {entry['reason']}"
+    )
+    send_alert_email(title, body)
+
+
+trading_engine = PaperTradingEngine(on_trade=handle_paper_trade)
 
 
 # ========================================
@@ -66,6 +85,12 @@ def require_login():
 def index():
     """主页面"""
     return render_template('index.html')
+
+
+@app.route('/trading')
+def trading_page():
+    """独立的模拟量化交易页面。"""
+    return render_template('trading.html')
 
 
 @app.route('/health')
@@ -249,6 +274,55 @@ def test_email():
 
 
 # ========================================
+# API 路由 — 模拟量化交易
+# ========================================
+
+@app.route('/api/trading/status', methods=['GET'])
+def trading_status():
+    return jsonify(trading_engine.status())
+
+
+@app.route('/api/trading/history', methods=['GET'])
+def trading_history():
+    limit = request.args.get('limit', 100, type=int)
+    return jsonify(trading_engine.load_history(limit))
+
+
+@app.route('/api/trading/config', methods=['PUT'])
+def update_trading_config():
+    data = request.json
+    if not data:
+        return jsonify({'error': '请求体为空'}), 400
+    try:
+        return jsonify(trading_engine.update_config(data))
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+
+
+@app.route('/api/trading/start', methods=['POST'])
+def start_trading():
+    try:
+        started = trading_engine.start()
+        return jsonify({'success': True, 'started': started})
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+
+
+@app.route('/api/trading/stop', methods=['POST'])
+def stop_trading():
+    trading_engine.stop()
+    return jsonify({'success': True})
+
+
+@app.route('/api/trading/reset', methods=['POST'])
+def reset_trading():
+    try:
+        return jsonify(trading_engine.reset())
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+
+
+# ========================================
 # Socket.IO 事件
 # ========================================
 
@@ -257,6 +331,7 @@ def handle_connect():
     """客户端连接时发送当前价格数据"""
     prices = monitor.get_prices()
     socketio.emit('all_prices', prices)
+    socketio.emit('paper_trading_status', trading_engine.status())
 
 
 # ========================================
@@ -274,5 +349,6 @@ if __name__ == '__main__':
     print("=" * 56)
     print()
     monitor.start()
+    trading_engine.start_if_enabled()
     port = int(os.environ.get('PORT', '5000'))
     socketio.run(app, host='0.0.0.0', port=port, debug=False, allow_unsafe_werkzeug=True)
